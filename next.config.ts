@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import type { NextConfig } from "next";
 
 const API_INTERNAL_URL = process.env.API_INTERNAL_URL ?? "http://127.0.0.1:4000";
@@ -21,7 +22,19 @@ const csp = [
   ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
+// Build identifier for version-skew protection: after a deploy, tabs opened on the
+// previous build do a full reload on navigation instead of failing to load old chunks.
+function deploymentId() {
+  if (process.env.DEPLOYMENT_ID) return process.env.DEPLOYMENT_ID;
+  try {
+    return execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim() || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 const nextConfig: NextConfig = {
+  deploymentId: deploymentId(),
   poweredByHeader: false,
   reactStrictMode: true,
   images: {
