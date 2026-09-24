@@ -1,6 +1,6 @@
 # Candy Roses Shop — Storefront (Next.js)
 
-Витрина https://candyrosesshop.com (English, USD). Документация — в [корневом README](../README.md).
+Витрина https://candyrosesshop.com (English, USD). Документация всего проекта и деплой — в репозитории [candyroses-backend](https://github.com/madeburo/candyroses-backend/blob/main/deploy/README.md).
 
 ```bash
 cp .env.example .env.local   # для локальной разработки
