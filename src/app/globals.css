@@ -1,0 +1,235 @@
+@import "tailwindcss";
+
+@theme {
+  /* Neutral warm palette — no pink in the UI (brand logo is used as-is).
+     Token names are semantic: "blush"/"rose" are champagne & rose-gold tones here. */
+  --color-cream: #faf6f0;
+  --color-warm-white: #fffdf9;
+  --color-blush: #f5ede3; /* light champagne surface */
+  --color-blush-deep: #ebdfd0; /* champagne */
+  --color-rose: #c9a58c; /* rose gold (metallic beige) */
+  --color-rose-deep: #7a2d45; /* brand burgundy — small accents only */
+  --color-rose-gold: #b48c72;
+  --color-beige: #efe5d8;
+  --color-sand: #e3d5c3;
+  --color-soft-gray: #ebe8e4;
+  --color-line: #e7ded3;
+  --color-ink: #2b2522;
+  --color-ink-soft: #4a423d;
+  --color-muted: #6e645d;
+  --color-success: #3f7a5a;
+  --color-danger: #b23b3b;
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cormorant), ui-serif, Georgia, serif;
+
+  --radius-card: 1.25rem;
+  --shadow-soft: 0 1px 2px rgb(43 37 34 / 0.04), 0 10px 28px -14px rgb(43 37 34 / 0.16);
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-warm-white font-sans text-ink antialiased;
+    overflow-x: clip;
+  }
+  ::selection {
+    @apply bg-blush-deep text-ink;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-rose-deep);
+    outline-offset: 2px;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  img {
+    max-width: 100%;
+  }
+}
+
+@utility container-page {
+    @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-10;
+  }
+
+@utility btn {
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-full px-7 text-sm font-semibold tracking-wide transition-[color,background-color,border-color,box-shadow,transform] duration-300 ease-[var(--ease-soft)] hover:-translate-y-px hover:shadow-soft active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+
+@utility btn-primary {
+    @apply btn bg-ink text-warm-white hover:bg-ink-soft;
+  }
+
+@utility btn-secondary {
+    @apply btn border border-ink/15 bg-warm-white text-ink hover:border-ink/40;
+  }
+
+@utility btn-rose {
+    @apply btn bg-rose-deep text-warm-white hover:bg-[#652338];
+  }
+
+@utility input {
+    @apply h-12 w-full rounded-xl border border-line bg-warm-white px-4 text-[15px] text-ink placeholder:text-muted/70 transition-colors outline-none focus:border-rose-deep focus:ring-2 focus:ring-rose/20 aria-invalid:border-danger;
+  }
+
+@utility label {
+    @apply mb-1.5 block text-sm font-medium text-ink-soft;
+  }
+
+@utility eyebrow {
+    @apply text-xs font-semibold tracking-[0.18em] text-rose-deep uppercase;
+  }
+
+@utility heading-xl {
+    @apply font-display text-[2.6rem] leading-[1.05] font-medium sm:text-6xl lg:text-7xl;
+  }
+
+@utility heading-lg {
+    @apply font-display text-3xl leading-tight font-medium sm:text-4xl lg:text-5xl;
+  }
+
+/* ───────────────────────── Motion ───────────────────────── */
+
+/* Page transitions (see components/layout/page-transition.tsx) */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(.page-exit) {
+  animation: 180ms ease-in both crs-fade-out;
+}
+::view-transition-new(.page-enter) {
+  animation: 420ms var(--ease-soft) 60ms both crs-rise-in;
+}
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header) {
+  display: none;
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+@keyframes crs-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes crs-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes crs-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes crs-slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+}
+@keyframes crs-slide-out-left {
+  to {
+    transform: translateX(-100%);
+  }
+}
+@keyframes crs-slide-in-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes crs-slide-out-down {
+  to {
+    transform: translateY(100%);
+  }
+}
+@keyframes crs-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+}
+
+/* Scroll reveal (components/ui/reveal.tsx) */
+.reveal-pending {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 700ms var(--ease-soft),
+    transform 700ms var(--ease-soft);
+}
+.reveal-pending.reveal-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hero entrance */
+.hero-in > * {
+  animation: crs-rise-in 800ms var(--ease-soft) both;
+}
+.hero-in > *:nth-child(2) {
+  animation-delay: 80ms;
+}
+.hero-in > *:nth-child(3) {
+  animation-delay: 160ms;
+}
+.hero-in > *:nth-child(4) {
+  animation-delay: 240ms;
+}
+
+/* Radix dialogs: overlay fade, side sheet, bottom sheet, search drop-down */
+.anim-overlay[data-state="open"] {
+  animation: crs-fade-in 220ms ease-out;
+}
+.anim-overlay[data-state="closed"] {
+  animation: crs-fade-out 180ms ease-in forwards;
+}
+.anim-sheet-left[data-state="open"] {
+  animation: crs-slide-in-left 320ms var(--ease-soft);
+}
+.anim-sheet-left[data-state="closed"] {
+  animation: crs-slide-out-left 220ms ease-in forwards;
+}
+.anim-sheet-bottom[data-state="open"] {
+  animation: crs-slide-in-up 340ms var(--ease-soft);
+}
+.anim-sheet-bottom[data-state="closed"] {
+  animation: crs-slide-out-down 220ms ease-in forwards;
+}
+.anim-drop[data-state="open"] {
+  animation: crs-drop-in 320ms var(--ease-soft);
+}
+.anim-drop[data-state="closed"] {
+  animation: crs-fade-out 160ms ease-in forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

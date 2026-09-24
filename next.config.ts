@@ -1,0 +1,65 @@
+import type { NextConfig } from "next";
+
+const API_INTERNAL_URL = process.env.API_INTERNAL_URL ?? "http://127.0.0.1:4000";
+const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL ?? "http://localhost:4000/uploads";
+const isDev = process.env.NODE_ENV !== "production";
+const media = new URL(MEDIA_URL);
+
+const csp = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' 'unsafe-inline'",
+  `img-src 'self' data: blob: ${media.origin}`,
+  "font-src 'self' data:",
+  `connect-src 'self'${isDev ? " ws: http://localhost:*" : ""}`,
+  "frame-src https://www.paypal.com https://www.sandbox.paypal.com",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self' https://www.paypal.com https://www.sandbox.paypal.com",
+  "object-src 'none'",
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
+].join("; ");
+
+const nextConfig: NextConfig = {
+  poweredByHeader: false,
+  reactStrictMode: true,
+  images: {
+    qualities: [60, 75, 85],
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [360, 480, 640, 768, 1024, 1280, 1536, 1920],
+    minimumCacheTTL: 86400,
+    remotePatterns: [
+      {
+        protocol: media.protocol.replace(":", "") as "http" | "https",
+        hostname: media.hostname,
+        port: media.port,
+        pathname: `${media.pathname.replace(/\/$/, "")}/**`,
+      },
+    ],
+    dangerouslyAllowLocalIP: isDev,
+  },
+  // Browser calls go same-origin to /api (nginx proxies to the API in production).
+  async rewrites() {
+    return [{ source: "/api/:path*", destination: `${API_INTERNAL_URL}/api/:path*` }];
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: csp },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(self \"https://www.paypal.com\")" },
+        ],
+      },
+      {
+        source: "/(account|checkout|cart|order)(.*)",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
+  },
+};
+
+export default nextConfig;
