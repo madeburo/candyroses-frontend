@@ -44,7 +44,7 @@ export async function Footer() {
                   </Link>
                 </li>
               ))}
-            {categories.map((c) => (
+            {categories.filter((c) => c.showInMenu).map((c) => (
               <li key={c.id}>
                 <Link href={`/category/${c.slug}`} className="hover:text-rose-deep">
                   {c.name}

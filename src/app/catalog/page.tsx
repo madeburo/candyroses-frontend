@@ -24,14 +24,14 @@ export default async function CatalogPage({ searchParams }: PageProps<"/catalog"
       <CatalogView
         title="Shop All"
         eyebrow="Candy Roses"
-        description="Special-occasion dresses for girls — from the first birthday to the pageant stage."
+        description="Special-occasion dresses for girls — for birthdays, holidays and every celebration in between."
         crumbs={[{ name: "Shop All" }]}
         pathname="/catalog"
         searchParams={sp}
         scope={{}}
         products={products}
         meta={meta}
-        categories={categories.map((c) => ({ name: c.name, slug: c.slug }))}
+        categories={categories.filter((c) => c.showInMenu).map((c) => ({ name: c.name, slug: c.slug }))}
       />
   );
 }

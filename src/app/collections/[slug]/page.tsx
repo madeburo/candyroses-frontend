@@ -48,7 +48,7 @@ export default async function CollectionPage({ params, searchParams }: PageProps
       scope={{ collection: slug }}
       products={products}
       meta={meta}
-      categories={categories.map((c) => ({ name: c.name, slug: c.slug }))}
+      categories={categories.filter((c) => c.showInMenu).map((c) => ({ name: c.name, slug: c.slug }))}
       hideFlags={collection.type === "AUTO_NEW" ? ["isNew"] : collection.type === "AUTO_SALE" ? ["sale"] : []}
     />
   );

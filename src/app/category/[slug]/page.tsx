@@ -46,7 +46,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps<"
       scope={{ category: slug }}
       products={products}
       meta={meta}
-      categories={category.children.map((c) => ({ name: c.name, slug: c.slug }))}
+      categories={category.children.filter((c) => c.showInMenu).map((c) => ({ name: c.name, slug: c.slug }))}
     />
   );
 }
