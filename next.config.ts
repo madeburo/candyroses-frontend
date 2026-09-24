@@ -3,15 +3,16 @@ import type { NextConfig } from "next";
 const API_INTERNAL_URL = process.env.API_INTERNAL_URL ?? "http://127.0.0.1:4000";
 const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL ?? "http://localhost:4000/uploads";
 const isDev = process.env.NODE_ENV !== "production";
+const UMAMI_ORIGIN = "https://umami.madeburo.com";
 const media = new URL(MEDIA_URL);
 
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' ${UMAMI_ORIGIN}${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: ${media.origin}`,
   "font-src 'self' data:",
-  `connect-src 'self'${isDev ? " ws: http://localhost:*" : ""}`,
+  `connect-src 'self' ${UMAMI_ORIGIN}${isDev ? " ws: http://localhost:*" : ""}`,
   "frame-src https://www.paypal.com https://www.sandbox.paypal.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",

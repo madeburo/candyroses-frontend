@@ -203,7 +203,7 @@ export function ProductPurchase({ product: p }: { product: ProductDetail }) {
       )}
 
       <p className="flex items-center gap-2 text-sm text-muted">
-        <Truck className="size-4 shrink-0" /> Ships to all 50 states. <Link href="/shipping" className="underline underline-offset-4 hover:text-ink">Shipping details</Link>
+        <Truck className="size-4 shrink-0" /> Ships across the USA. <Link href="/shipping" className="underline underline-offset-4 hover:text-ink">Shipping details</Link>
       </p>
     </div>
   );

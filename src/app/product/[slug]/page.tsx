@@ -171,7 +171,7 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
               )}
               <Section title="Shipping & returns">
                 <div className="space-y-2 text-sm leading-relaxed text-ink-soft">
-                  <p>We ship to all 50 states. Shipping options and costs are calculated at checkout{settings.freeShippingFrom ? ` — standard shipping is free on orders over $${settings.freeShippingFrom}` : ""}.</p>
+                  <p>We ship across the USA. Shipping options and costs are calculated at checkout{settings.freeShippingFrom ? ` — standard shipping is free on orders over $${settings.freeShippingFrom}` : ""}.</p>
                   <p>
                     Questions about fit or delivery dates? <Link href="/contact" className="underline underline-offset-4">Contact us</Link> — we’re happy to help.
                   </p>

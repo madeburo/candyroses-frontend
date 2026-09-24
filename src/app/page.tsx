@@ -113,7 +113,7 @@ export default async function HomePage() {
           {[
             { icon: Gift, title: "Made for special days", text: "Delicate details, soft linings and comfort she’ll love all day." },
             { icon: Ruler, title: "Size by height", text: "Sizes match your child’s height in cm — see the size guide on every product." },
-            { icon: Truck, title: "Ships across the USA", text: "Careful packaging and delivery to all 50 states." },
+            { icon: Truck, title: "Ships across the USA", text: "Careful packaging and delivery to all states." },
             { icon: ShieldCheck, title: "Secure checkout", text: "Your payment and personal data are always protected." },
           ].map(({ icon: Icon, title, text }) => (
             <li key={title} className="flex gap-4">

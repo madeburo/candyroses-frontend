@@ -27,7 +27,7 @@ export default async function ShippingPage() {
   ]);
   return (
     <ProsePage title="Shipping & Payment" eyebrow="Customer care">
-      <p>We ship to all 50 US states. Shipping costs are calculated automatically at checkout based on the method you choose.</p>
+      <p>We ship across the USA. Shipping costs are calculated automatically at checkout based on the method you choose.</p>
       <h2>Shipping options</h2>
       <div className="not-prose overflow-x-auto rounded-2xl border border-line">
         <table className="w-full min-w-[480px] text-left text-sm">

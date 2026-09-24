@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
+import Script from "next/script";
 import { JsonLd } from "@/components/json-ld";
 import { CartSync } from "@/components/layout/cart-sync";
 import { Footer } from "@/components/layout/footer";
@@ -82,6 +83,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         </main>
         <Footer />
         <CartSync />
+        {/* Umami analytics; data-domains keeps local/dev visits out of the stats */}
+        <Script
+          src="https://umami.madeburo.com/mb.js"
+          data-website-id="bc4cf8ac-bef5-4b0e-af90-7ed45f67ac95"
+          data-domains="candyrosesshop.com"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
