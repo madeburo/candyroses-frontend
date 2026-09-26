@@ -10,7 +10,7 @@ import { ProductPurchase } from "@/components/product/product-purchase";
 import { AgeSizeChart } from "@/components/product/age-size-chart";
 import { SizeGuide } from "@/components/product/size-guide";
 import { formatPrice } from "@/lib/format";
-import { deliveryTime, pageMetadata, PRODUCTION_TEXT, RETURN_WINDOW_DAYS, returnPolicyJsonLd, SHIPS_FROM, shippingDetailsJsonLd, shippingSummary, STORE_NAME } from "@/lib/seo";
+import { deliveryTime, freeFrom, pageMetadata, PRODUCTION_TEXT, RETURN_WINDOW_DAYS, returnPolicyJsonLd, SHIPS_FROM, shippedMethods, shippingDetailsJsonLd, STORE_NAME } from "@/lib/seo";
 import { getProduct, getRelated, getSettings, getShippingMethods, NotFoundError } from "@/lib/server-api";
 import type { ProductDetail, ShippingMethod } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
@@ -127,6 +127,8 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
   const hasCmSize = p.options.some((o) => o.code === "size");
   const hasAgeSize = p.options.some((o) => o.code === "size-years");
   const delivery = deliveryTime(methods);
+  const shipping = shippedMethods(methods)[0] ?? null;
+  const shippingFree = shipping ? freeFrom(shipping, settings.freeShippingFrom) : null;
   const crumbs = [
     { name: "Shop All", href: "/catalog" },
     ...p.breadcrumbs.map((b) => ({ name: b.name, href: `/category/${b.slug}` })),
@@ -195,30 +197,40 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
                 </Section>
               )}
               <Section title="Shipping & returns">
-                <div className="space-y-2 text-sm leading-relaxed text-ink-soft">
-                  <p>
-                    Each piece is handmade to order. Please allow {PRODUCTION_TEXT} for us to make and prepare it{delivery ? `, then ${delivery} for delivery` : ""} from{" "}
-                    {SHIPS_FROM.city}, {SHIPS_FROM.country} to your door anywhere in the USA.
-                  </p>
-                  {methods.length > 0 && (
-                    <ul className="list-disc space-y-1 pl-5">
-                      {shippingSummary(methods, settings.freeShippingFrom, formatPrice).map((line) => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ul>
+                <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm leading-relaxed">
+                  <dt className="text-muted">Handmade</dt>
+                  <dd>Made especially for you once you order — {PRODUCTION_TEXT} to sew and prepare.</dd>
+                  <dt className="text-muted">Delivery</dt>
+                  <dd>
+                    {delivery ? `${delivery} ` : ""}from {SHIPS_FROM.city}, {SHIPS_FROM.country} to your door anywhere in the USA, with a tracking number as soon as it ships.
+                  </dd>
+                  {shipping && (
+                    <>
+                      <dt className="text-muted">Shipping</dt>
+                      <dd>
+                        {shipping.price === 0
+                          ? "Free"
+                          : shippingFree !== null
+                            ? `Free on orders of ${formatPrice(shippingFree)} or more, otherwise ${formatPrice(shipping.price)}`
+                            : formatPrice(shipping.price)}
+                      </dd>
+                    </>
                   )}
-                  <p>
-                    Exchanges and returns within {RETURN_WINDOW_DAYS} days of delivery — see{" "}
+                  <dt className="text-muted">Returns</dt>
+                  <dd>
+                    Exchanges and returns within {RETURN_WINDOW_DAYS} days of delivery (unworn, with tags attached).{" "}
                     <Link href="/shipping" className="underline underline-offset-4">
-                      Shipping & Payment
+                      Details
                     </Link>
-                    . Questions about fit or delivery dates?{" "}
-                    <Link href="/contact" className="underline underline-offset-4">
-                      Contact us
-                    </Link>{" "}
-                    — we’re happy to help.
-                  </p>
-                </div>
+                  </dd>
+                </dl>
+                <p className="mt-4 text-sm text-muted">
+                  Planning for a special date? We recommend ordering 3–4 weeks ahead. Questions about fit or delivery?{" "}
+                  <Link href="/contact" className="underline underline-offset-4 hover:text-ink">
+                    Contact us
+                  </Link>
+                  .
+                </p>
               </Section>
             </div>
           </div>

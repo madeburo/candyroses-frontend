@@ -5,24 +5,28 @@ import { Logo } from "./logo";
 import { MobileMenu, type NavItem } from "./mobile-menu";
 import { SearchButton } from "./search";
 
+/**
+ * Menu after "Shop All": categories and collections shown in the menu, in one order set by their
+ * "sort order" field in the CMS (shared scale, so a category can sit before a collection).
+ */
 export async function buildNav(): Promise<NavItem[]> {
   const [categories, collections] = await Promise.all([getCategories(), getCollections()]);
-  const cols = collections.filter((c) => c.showInMenu);
-  const first = cols.filter((c) => c.type === "AUTO_NEW");
-  const last = cols.filter((c) => c.type === "AUTO_SALE");
-  const middle = cols.filter((c) => c.type !== "AUTO_NEW" && c.type !== "AUTO_SALE");
-  return [
-    ...first.map((c) => ({ label: c.name, href: `/collections/${c.slug}` })),
+  const items: { order: number; item: NavItem }[] = [
     ...categories
       .filter((c) => c.showInMenu)
       .map((c) => ({
-        label: c.name,
-        href: `/category/${c.slug}`,
-        children: c.children.filter((x) => x.showInMenu).map((x) => ({ label: x.name, href: `/category/${x.slug}` })),
+        order: c.sortOrder,
+        item: {
+          label: c.name,
+          href: `/category/${c.slug}`,
+          children: c.children.filter((x) => x.showInMenu).map((x) => ({ label: x.name, href: `/category/${x.slug}` })),
+        },
       })),
-    ...middle.map((c) => ({ label: c.name, href: `/collections/${c.slug}` })),
-    ...last.map((c) => ({ label: c.name, href: `/collections/${c.slug}`, accent: true })),
+    ...collections
+      .filter((c) => c.showInMenu)
+      .map((c) => ({ order: c.sortOrder, item: { label: c.name, href: `/collections/${c.slug}`, ...(c.type === "AUTO_SALE" ? { accent: true } : {}) } })),
   ];
+  return items.sort((a, b) => a.order - b.order).map((x) => x.item);
 }
 
 export async function Header() {
