@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { ProsePage } from "@/components/content/prose-page";
 import { getSettings } from "@/lib/server-api";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Privacy Policy", alternates: { canonical: "/privacy" } };
+export const metadata: Metadata = pageMetadata({
+  title: "Privacy Policy",
+  description: "How Candy Roses Shop collects, uses and protects your personal information when you visit our website or place an order.",
+  path: "/privacy",
+});
 
 export default async function PrivacyPage() {
   const s = await getSettings();

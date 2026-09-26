@@ -2,29 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ProsePage } from "@/components/content/prose-page";
 import { formatPrice } from "@/lib/format";
-import { getSettings, safe } from "@/lib/server-api";
-import type { PaymentMethod, ShippingMethod } from "@/lib/types";
+import { getPaymentMethods, getSettings, getShippingMethods } from "@/lib/server-api";
+import { freeFrom, HANDLING_DAYS, pageMetadata, RETURN_WINDOW_DAYS } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Shipping & Payment",
-  description: "Shipping options, delivery times, payment methods and exchanges at Candy Roses Shop.",
-  alternates: { canonical: "/shipping" },
-};
+  description: "Shipping options across the USA, delivery times, payment methods, exchanges and returns at Candy Roses Shop.",
+  path: "/shipping",
+});
 export const revalidate = 300;
 
-const API = (process.env.API_INTERNAL_URL ?? "http://127.0.0.1:4000").replace(/\/$/, "");
-async function get<T>(path: string): Promise<T> {
-  const r = await fetch(`${API}/api/v1${path}`, { next: { revalidate: 300 } });
-  if (!r.ok) throw new Error(String(r.status));
-  return ((await r.json()) as { data: T }).data;
-}
-
 export default async function ShippingPage() {
-  const [methods, payments, settings] = await Promise.all([
-    safe(() => get<ShippingMethod[]>("/shipping-methods"), []),
-    safe(() => get<PaymentMethod[]>("/payment-methods"), []),
-    getSettings(),
-  ]);
+  const [methods, payments, settings] = await Promise.all([getShippingMethods(), getPaymentMethods(), getSettings()]);
   return (
     <ProsePage title="Shipping & Payment" eyebrow="Customer care">
       <p>We ship across the USA. Shipping costs are calculated automatically at checkout based on the method you choose.</p>
@@ -48,14 +37,16 @@ export default async function ShippingPage() {
                 <td className="px-4 py-3">{m.estimatedDays ?? "—"}</td>
                 <td className="px-4 py-3">
                   {m.price === 0 ? "Free" : formatPrice(m.price)}
-                  {m.freeFromAmount && m.price > 0 ? <span className="block text-muted">Free over {formatPrice(m.freeFromAmount)}</span> : null}
+                  {m.price > 0 && freeFrom(m, settings.freeShippingFrom) !== null ? (
+                    <span className="block text-muted">Free on orders of {formatPrice(freeFrom(m, settings.freeShippingFrom)!)} or more</span>
+                  ) : null}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <p>Orders are processed within 1–2 business days. You’ll receive a tracking number as soon as your order ships.</p>
+      <p>Orders are processed within {HANDLING_DAYS[0]}–{HANDLING_DAYS[1]} business days. You’ll receive a tracking number as soon as your order ships.</p>
       <h2>Payment</h2>
       <ul>
         {payments.map((p) => (
@@ -67,7 +58,7 @@ export default async function ShippingPage() {
       <p>All prices are in US dollars. Payments are processed securely; we never store your card details.</p>
       <h2>Exchanges & returns</h2>
       <p>
-        If something doesn’t fit, contact us within 14 days of delivery and we’ll help with an exchange or return. Items must be unworn, with tags attached. Custom-altered items can’t be returned.
+        If something doesn’t fit, contact us within {RETURN_WINDOW_DAYS} days of delivery and we’ll help with an exchange or return. Items must be unworn, with tags attached. Custom-altered items can’t be returned.
       </p>
       <p>
         Questions? <Link href="/contact">Contact us</Link>

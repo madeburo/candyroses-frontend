@@ -1,5 +1,5 @@
 import "server-only";
-import type { Category, Collection, Facets, PageMeta, ProductCard, ProductDetail, StoreSettings } from "./types";
+import type { Category, Collection, Facets, PageMeta, PaymentMethod, ProductCard, ProductDetail, ShippingMethod, StoreSettings } from "./types";
 
 const API = (process.env.API_INTERNAL_URL ?? "http://127.0.0.1:4000").replace(/\/$/, "");
 
@@ -49,6 +49,8 @@ const EMPTY_SETTINGS: StoreSettings = {
 };
 
 export const getSettings = () => safe(() => get<StoreSettings>("/settings/public", { revalidate: 300 }).then((r) => r.data), EMPTY_SETTINGS);
+export const getShippingMethods = () => safe(() => get<ShippingMethod[]>("/shipping-methods", { revalidate: 300 }).then((r) => r.data), []);
+export const getPaymentMethods = () => safe(() => get<PaymentMethod[]>("/payment-methods", { revalidate: 300 }).then((r) => r.data), []);
 export const getCategories = () => safe(() => get<Category[]>("/categories", { revalidate: 120 }).then((r) => r.data), []);
 export const getCollections = () => safe(() => get<Collection[]>("/collections", { revalidate: 120 }).then((r) => r.data), []);
 

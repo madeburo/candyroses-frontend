@@ -4,8 +4,13 @@ import { ProsePage } from "@/components/content/prose-page";
 import { InstagramIcon, WhatsAppIcon } from "@/components/ui/icons";
 import { getSettings } from "@/lib/server-api";
 import { instagramUrl, whatsappUrl } from "@/lib/utils";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Contact Us", description: "Get in touch with Candy Roses Shop.", alternates: { canonical: "/contact" } };
+export const metadata: Metadata = pageMetadata({
+  title: "Contact Us",
+  description: "Questions about sizing, orders or delivery? Contact Candy Roses Shop by email, phone, WhatsApp or Instagram — we’re happy to help.",
+  path: "/contact",
+});
 
 export default async function ContactPage() {
   const s = await getSettings();

@@ -6,6 +6,7 @@ import { CartSync } from "@/components/layout/cart-sync";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { PageTransition } from "@/components/layout/page-transition";
+import { returnPolicyJsonLd } from "@/lib/seo";
 import { getSettings } from "@/lib/server-api";
 import { SITE_URL, instagramUrl } from "@/lib/utils";
 import "./globals.css";
@@ -23,18 +24,15 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     keywords: s.seoKeywords ?? undefined,
     applicationName: s.storeName,
-    alternates: { canonical: "/" },
     openGraph: {
       type: "website",
       siteName: s.storeName,
       locale: "en_US",
-      url: SITE_URL,
       title,
       description,
       images: [{ url: s.ogImageUrl ?? "/og.jpg", width: 1200, height: 630, alt: s.storeName }],
     },
     twitter: { card: "summary_large_image", title, description, images: [s.ogImageUrl ?? "/og.jpg"] },
-    robots: { index: true, follow: true },
     formatDetection: { telephone: false },
   };
 }
@@ -59,9 +57,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             {
               "@context": "https://schema.org",
               "@type": "Organization",
+              "@id": `${SITE_URL}/#organization`,
               name: s.storeName,
               url: SITE_URL,
               logo: `${SITE_URL}/icon.png`,
+              description: s.seoDescription ?? "Princess dresses, birthday outfits and costumes for girls, shipped across the USA.",
+              areaServed: { "@type": "Country", name: "United States" },
+              hasMerchantReturnPolicy: returnPolicyJsonLd(),
               ...(sameAs.length ? { sameAs } : {}),
               ...(s.phone || s.email
                 ? { contactPoint: { "@type": "ContactPoint", contactType: "customer service", telephone: s.phone ?? undefined, email: s.email ?? undefined, areaServed: "US", availableLanguage: ["en"] } }
@@ -70,8 +72,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             {
               "@context": "https://schema.org",
               "@type": "WebSite",
+              "@id": `${SITE_URL}/#website`,
               name: s.storeName,
               url: SITE_URL,
+              publisher: { "@id": `${SITE_URL}/#organization` },
               inLanguage: "en-US",
               potentialAction: { "@type": "SearchAction", target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/search?q={search_term_string}` }, "query-input": "required name=search_term_string" },
             },

@@ -8,8 +8,10 @@ import { JsonLd } from "@/components/json-ld";
 import { Gallery } from "@/components/product/gallery";
 import { ProductPurchase } from "@/components/product/product-purchase";
 import { SizeGuide } from "@/components/product/size-guide";
-import { getProduct, getRelated, getSettings, NotFoundError } from "@/lib/server-api";
-import type { ProductDetail } from "@/lib/types";
+import { formatPrice } from "@/lib/format";
+import { HANDLING_DAYS, pageMetadata, RETURN_WINDOW_DAYS, returnPolicyJsonLd, shippingDetailsJsonLd, shippingSummary, STORE_NAME } from "@/lib/seo";
+import { getProduct, getRelated, getSettings, getShippingMethods, NotFoundError } from "@/lib/server-api";
+import type { ProductDetail, ShippingMethod } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
 
 async function load(slug: string) {
@@ -24,64 +26,84 @@ async function load(slug: string) {
 export async function generateMetadata({ params }: PageProps<"/product/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const p = await load(slug);
-  const title = p.seo.title ?? p.name;
-  const description = p.seo.description ?? p.shortDescription ?? `${p.name} by Candy Roses — special-occasion dresses for girls.`;
-  const url = `/product/${p.slug}`;
   const images = p.images.slice(0, 4).map((i) => ({ url: i.url, width: i.width ?? undefined, height: i.height ?? undefined, alt: i.alt ?? p.name }));
   return {
-    title,
-    description,
+    ...pageMetadata({
+      title: p.seo.title ?? p.name,
+      description: p.seo.description ?? p.shortDescription ?? `${p.name} by Candy Roses — special-occasion dresses for girls.`,
+      path: `/product/${p.slug}`,
+      images,
+    }),
     keywords: p.seo.keywords ?? undefined,
-    alternates: { canonical: url },
-    openGraph: { type: "website", url, title, description, images },
-    twitter: { card: "summary_large_image", title, description, images: images.map((i) => i.url) },
     other: {
       "product:price:amount": p.price.toFixed(2),
       "product:price:currency": p.currency,
       "product:availability": p.inStock ? "in stock" : "out of stock",
+      "product:condition": "new",
+      "product:brand": p.brand ?? STORE_NAME,
     },
   };
 }
 
-function productJsonLd(p: ProductDetail, storeName: string) {
+/**
+ * schema.org Product / ProductGroup for Google merchant listings and AI answer engines:
+ * one Product per variant (size, color, price, availability), with shipping and return policy.
+ */
+function productJsonLd(p: ProductDetail, methods: ShippingMethod[], storeFreeFrom: number | null) {
   const url = absoluteUrl(`/product/${p.slug}`);
-  const prices = p.variants.map((v) => v.price);
-  const low = prices.length ? Math.min(...prices) : p.price;
-  const high = prices.length ? Math.max(...prices) : p.price;
-  const availability = p.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock";
   const validUntil = new Date(Date.now() + 90 * 86400_000).toISOString().slice(0, 10);
-  const offers =
-    low === high
-      ? { "@type": "Offer", url, price: low.toFixed(2), priceCurrency: p.currency, availability, itemCondition: "https://schema.org/NewCondition", priceValidUntil: validUntil, seller: { "@type": "Organization", name: storeName } }
-      : {
-          "@type": "AggregateOffer",
-          url,
-          lowPrice: low.toFixed(2),
-          highPrice: high.toFixed(2),
-          offerCount: p.variants.length,
-          priceCurrency: p.currency,
-          availability,
-          offers: p.variants.map((v) => ({
-            "@type": "Offer",
-            sku: v.sku,
-            price: v.price.toFixed(2),
-            priceCurrency: p.currency,
-            availability: v.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-            itemCondition: "https://schema.org/NewCondition",
-          })),
-        };
+  const valueName = (code: string, id: string | undefined) => p.options.find((o) => o.code === code)?.values.find((v) => v.id === id)?.value;
+  const sizeCode = p.options.find((o) => o.code === "size" || o.code.startsWith("size-"))?.code;
+  const colorCode = p.options.find((o) => o.type === "COLOR")?.code;
+  const description = (p.description ?? p.shortDescription ?? "").replace(/\s+/g, " ").trim() || undefined;
+  const images = p.images.map((i) => i.url);
+  const offer = (price: number, inStock: boolean, offerUrl: string) => ({
+    "@type": "Offer",
+    url: offerUrl,
+    price: price.toFixed(2),
+    priceCurrency: p.currency,
+    priceValidUntil: validUntil,
+    availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    itemCondition: "https://schema.org/NewCondition",
+    seller: { "@type": "Organization", name: STORE_NAME },
+    shippingDetails: shippingDetailsJsonLd(methods, storeFreeFrom, price, p.currency),
+    hasMerchantReturnPolicy: returnPolicyJsonLd(),
+  });
+  const common = {
+    brand: { "@type": "Brand", name: p.brand ?? STORE_NAME },
+    category: p.category?.name,
+    ...(p.material ? { material: p.material } : {}),
+    audience: { "@type": "PeopleAudience", suggestedGender: p.gender === "BOY" ? "male" : p.gender === "GIRL" ? "female" : "unisex" },
+  };
+
+  if (p.variants.length <= 1) {
+    const v = p.variants[0];
+    return { "@context": "https://schema.org", "@type": "Product", name: p.name, sku: v?.sku ?? p.sku, url, description, image: images, ...common, offers: offer(v?.price ?? p.price, v?.inStock ?? p.inStock, url) };
+  }
   return {
     "@context": "https://schema.org",
-    "@type": "Product",
+    "@type": "ProductGroup",
     name: p.name,
-    sku: p.sku,
+    productGroupID: p.sku,
     url,
-    description: p.shortDescription ?? p.description ?? undefined,
-    image: p.images.map((i) => i.url),
-    brand: { "@type": "Brand", name: p.brand ?? storeName },
-    category: p.category?.name,
-    audience: { "@type": "PeopleAudience", suggestedGender: p.gender === "BOY" ? "male" : p.gender === "GIRL" ? "female" : "unisex" },
-    offers,
+    description,
+    image: images,
+    ...common,
+    variesBy: [sizeCode && "https://schema.org/size", colorCode && "https://schema.org/color"].filter(Boolean),
+    hasVariant: p.variants.map((v) => {
+      const size = sizeCode ? valueName(sizeCode, v.options[sizeCode]) : undefined;
+      const color = colorCode ? valueName(colorCode, v.options[colorCode]) : undefined;
+      const variantImages = p.images.filter((i) => i.variantId === v.id).map((i) => i.url);
+      return {
+        "@type": "Product",
+        name: [p.name, color, size].filter(Boolean).join(" — "),
+        sku: v.sku,
+        image: variantImages.length ? variantImages : images,
+        ...(size ? { size } : {}),
+        ...(color ? { color } : {}),
+        offers: offer(v.price, v.inStock, url),
+      };
+    }),
   };
 }
 
@@ -99,7 +121,7 @@ function Section({ title, children, defaultOpen = false, id }: { title: string; 
 
 export default async function ProductPage({ params }: PageProps<"/product/[slug]">) {
   const { slug } = await params;
-  const [p, settings] = await Promise.all([load(slug), getSettings()]);
+  const [p, settings, methods] = await Promise.all([load(slug), getSettings(), getShippingMethods()]);
   const related = await getRelated(slug);
   const hasSize = p.options.some((o) => o.code === "size");
   const crumbs = [
@@ -110,7 +132,7 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
 
   return (
     <>
-      <JsonLd data={productJsonLd(p, settings.storeName)} />
+      <JsonLd data={productJsonLd(p, methods, settings.freeShippingFrom)} />
       <div className="container-page pt-6 sm:pt-8">
         <Breadcrumbs items={crumbs} />
         <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-14 xl:gap-20">
@@ -171,9 +193,24 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
               )}
               <Section title="Shipping & returns">
                 <div className="space-y-2 text-sm leading-relaxed text-ink-soft">
-                  <p>We ship across the USA. Shipping options and costs are calculated at checkout{settings.freeShippingFrom ? ` — standard shipping is free on orders over $${settings.freeShippingFrom}` : ""}.</p>
+                  <p>We ship across the USA. Orders are processed within {HANDLING_DAYS[0]}–{HANDLING_DAYS[1]} business days.</p>
+                  {methods.length > 0 && (
+                    <ul className="list-disc space-y-1 pl-5">
+                      {shippingSummary(methods, settings.freeShippingFrom, formatPrice).map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  )}
                   <p>
-                    Questions about fit or delivery dates? <Link href="/contact" className="underline underline-offset-4">Contact us</Link> — we’re happy to help.
+                    Exchanges and returns within {RETURN_WINDOW_DAYS} days of delivery — see{" "}
+                    <Link href="/shipping" className="underline underline-offset-4">
+                      Shipping & Payment
+                    </Link>
+                    . Questions about fit or delivery dates?{" "}
+                    <Link href="/contact" className="underline underline-offset-4">
+                      Contact us
+                    </Link>{" "}
+                    — we’re happy to help.
                   </p>
                 </div>
               </Section>

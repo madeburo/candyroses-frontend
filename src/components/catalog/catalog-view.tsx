@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import { JsonLd } from "@/components/json-ld";
+import { itemListJsonLd } from "@/lib/seo";
 import { getFacets } from "@/lib/server-api";
 import { hasActiveFilters, type SearchParams } from "@/lib/catalog-params";
 import { plural } from "@/lib/format";
@@ -36,6 +38,7 @@ export async function CatalogView({
   const facets = await getFacets(scope);
   return (
     <div className="container-page pt-6 pb-10 sm:pt-8">
+      {products.length > 0 && !hasActiveFilters(searchParams) && <JsonLd data={itemListJsonLd(title, meta.page > 1 ? `${pathname}?page=${meta.page}` : pathname, products, meta)} />}
       <Breadcrumbs items={crumbs} />
       <header className="mt-6 mb-8 max-w-3xl sm:mt-8 sm:mb-10">
         {eyebrow && <p className="eyebrow mb-3">{eyebrow}</p>}

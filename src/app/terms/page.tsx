@@ -2,8 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ProsePage } from "@/components/content/prose-page";
 import { getSettings } from "@/lib/server-api";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Terms of Service", alternates: { canonical: "/terms" } };
+export const metadata: Metadata = pageMetadata({
+  title: "Terms of Service",
+  description: "Terms of using the Candy Roses Shop website and placing orders: prices, payment, shipping, exchanges and returns.",
+  path: "/terms",
+});
 
 export default async function TermsPage() {
   const s = await getSettings();

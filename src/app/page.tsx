@@ -1,14 +1,27 @@
 import { ArrowRight, Gift, Ruler, ShieldCheck, Truck } from "lucide-react";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ProductRail } from "@/components/home/product-rail";
 import { InstagramIcon } from "@/components/ui/icons";
 import { Reveal } from "@/components/ui/reveal";
+import { pageMetadata, STORE_NAME } from "@/lib/seo";
 import { getCategories, getCollections, getProducts, getSettings, safe } from "@/lib/server-api";
 import type { PageMeta, ProductCard } from "@/lib/types";
 import { instagramUrl } from "@/lib/utils";
 
 export const revalidate = 60;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSettings();
+  return pageMetadata({
+    title: s.seoTitle ?? `${STORE_NAME} — Princess & Party Dresses for Girls`,
+    description: s.seoDescription ?? "Princess dresses, birthday outfits and costumes for girls. Shipped across the USA.",
+    path: "/",
+    absoluteTitle: true,
+    images: s.ogImageUrl ? [{ url: s.ogImageUrl, width: 1200, height: 630, alt: STORE_NAME }] : undefined,
+  });
+}
 
 const empty = { products: [] as ProductCard[], meta: { page: 1, limit: 8, total: 0, totalPages: 1 } as PageMeta };
 

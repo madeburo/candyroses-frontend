@@ -1,20 +1,21 @@
 import type { Metadata } from "next";
 import { CatalogView } from "@/components/catalog/catalog-view";
 import { hasActiveFilters, toApiQuery } from "@/lib/catalog-params";
+import { listingMetadata } from "@/lib/seo";
 import { getCategories, getProducts } from "@/lib/server-api";
 
 export async function generateMetadata({ searchParams }: PageProps<"/catalog">): Promise<Metadata> {
   const sp = await searchParams;
-  const title = "Shop All Girls’ Dresses";
-  const description = "Shop every Candy Roses style: princess and party dresses and costumes. Filter by size, color, age and price.";
-  return {
-    title,
-    description,
-    alternates: { canonical: "/catalog" },
-    robots: hasActiveFilters(sp) ? { index: false, follow: true } : undefined,
-    openGraph: { url: "/catalog", title, description },
-    twitter: { card: "summary_large_image", title, description },
-  };
+  const query = toApiQuery(sp);
+  const { products, meta } = await getProducts(query);
+  return listingMetadata({
+    title: "Shop All Girls’ Dresses",
+    description: "Shop every Candy Roses style: princess and party dresses and costumes for girls. Filter by size, color and price. Shipped across the USA.",
+    path: "/catalog",
+    meta,
+    filtered: hasActiveFilters(sp),
+    images: products[0]?.image ? [{ url: products[0].image.url, alt: products[0].image.alt ?? products[0].name }] : undefined,
+  });
 }
 
 export default async function CatalogPage({ searchParams }: PageProps<"/catalog">) {
