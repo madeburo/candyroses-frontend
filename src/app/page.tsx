@@ -2,15 +2,15 @@ import { ArrowRight, Gift, Ruler, ShieldCheck, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { connection } from "next/server";
 import { ProductRail } from "@/components/home/product-rail";
 import { InstagramIcon } from "@/components/ui/icons";
 import { Reveal } from "@/components/ui/reveal";
 import { pageMetadata, STORE_NAME } from "@/lib/seo";
-import { getCategories, getCollections, getProducts, getSettings, safe } from "@/lib/server-api";
+import { formatPrice } from "@/lib/format";
+import { getCollections, getProducts, getSettings, safe } from "@/lib/server-api";
 import type { PageMeta, ProductCard } from "@/lib/types";
 import { instagramUrl } from "@/lib/utils";
-
-export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSettings();
@@ -23,19 +23,29 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
+function shuffle<T>(items: T[]) {
+  const a = [...items];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 const empty = { products: [] as ProductCard[], meta: { page: 1, limit: 8, total: 0, totalPages: 1 } as PageMeta };
 
 export default async function HomePage() {
-  const [settings, categories, collections] = await Promise.all([getSettings(), getCategories(), getCollections()]);
+  // Rendered per request so the hero shows a different pair of products on every visit
+  // (API responses themselves stay cached for 60s).
+  await connection();
+  const [settings, collections] = await Promise.all([getSettings(), getCollections()]);
   const homeCollections = collections.filter((c) => c.showOnHome);
-  const homeCategories = categories.filter((c) => c.showOnHome);
 
-  const [featured, collectionProducts, categoryCovers] = await Promise.all([
-    safe(() => getProducts({ limit: 3, sort: "popular" }), empty),
+  const [pool, collectionProducts] = await Promise.all([
+    safe(() => getProducts({ limit: 24, sort: "new" }), empty),
     Promise.all(homeCollections.map((c) => safe(() => getProducts({ collection: c.slug, limit: 8, sort: c.type === "AUTO_NEW" ? "new" : "popular" }), empty))),
-    Promise.all(homeCategories.map((c) => (c.imageUrl ? Promise.resolve(empty) : safe(() => getProducts({ category: c.slug, limit: 1 }), empty)))),
   ]);
-  const heroImages = featured.products.map((p) => p.image).filter(Boolean).slice(0, 2);
+  const heroProducts = shuffle(pool.products.filter((p) => p.image && p.inStock)).slice(0, 2);
   const ig = instagramUrl(settings.instagram);
 
   return (
@@ -63,51 +73,30 @@ export default async function HomePage() {
               )}
             </div>
           </div>
-          {heroImages.length > 0 && (
-            <div className="relative mx-auto grid w-full max-w-xl grid-cols-2 gap-3 sm:gap-5">
-              {heroImages.map((img, i) => (
-                <div key={img!.url} className={`relative aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-warm-white shadow-soft ${i === 1 ? "mt-10 sm:mt-16" : ""}`}>
-                  <Image src={img!.url} alt={img!.alt ?? "Candy Roses dress"} fill priority sizes="(min-width: 1024px) 24vw, 45vw" className="object-cover" />
-                </div>
+          {heroProducts.length > 0 && (
+            <ul className="relative mx-auto grid w-full max-w-xl grid-cols-2 gap-3 sm:gap-5">
+              {heroProducts.map((p, i) => (
+                <li key={p.id} className={i === 1 ? "mt-10 sm:mt-16" : undefined}>
+                  <Link href={`/product/${p.slug}`} className="group relative block aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-warm-white shadow-soft">
+                    <Image
+                      src={p.image!.url}
+                      alt={p.image!.alt ?? p.name}
+                      fill
+                      priority
+                      sizes="(min-width: 1024px) 24vw, 45vw"
+                      className="object-cover transition-transform duration-700 ease-[var(--ease-soft)] group-hover:scale-[1.04]"
+                    />
+                    <span className="absolute inset-x-2.5 bottom-2.5 flex items-center justify-between gap-2 rounded-full bg-warm-white/90 px-3.5 py-2 text-xs shadow-soft backdrop-blur-sm sm:inset-x-3 sm:bottom-3 sm:text-sm">
+                      <span className="truncate font-medium">{p.name}</span>
+                      <span className="shrink-0 tabular-nums text-ink-soft">{formatPrice(p.price, p.currency)}</span>
+                    </span>
+                  </Link>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </div>
       </section>
-
-      {/* Categories */}
-      {homeCategories.length > 0 && (
-        <section className="container-page mt-20 sm:mt-24" aria-labelledby="cat-title">
-          <div className="mb-8 text-center">
-            <p className="eyebrow mb-2">Shop by occasion</p>
-            <h2 id="cat-title" className="heading-lg">
-              Find her perfect look
-            </h2>
-          </div>
-          <ul className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
-            {homeCategories.map((c, i) => {
-              const img = c.imageUrl ?? categoryCovers[i]?.products[0]?.image?.url ?? null;
-              return (
-                <Reveal as="li" key={c.id} delay={i * 90}>
-                  <Link href={`/category/${c.slug}`} className="group block">
-                    <div className="relative aspect-[3/4] overflow-hidden rounded-[var(--radius-card)] bg-blush">
-                      {img && <Image src={img} alt="" fill sizes="(min-width: 1024px) 23vw, 48vw" className="object-cover transition-transform duration-700 ease-[var(--ease-soft)] group-hover:scale-[1.04]" />}
-                      <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/5 to-transparent" />
-                      <div className="absolute inset-x-0 bottom-0 p-4 text-warm-white sm:p-6">
-                        <h3 className="font-display text-2xl leading-tight font-medium sm:text-3xl">{c.name}</h3>
-                        {c.description && <p className="mt-1 line-clamp-2 hidden text-sm text-warm-white/85 sm:block">{c.description}</p>}
-                        <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold tracking-[0.14em] uppercase">
-                          Shop now <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                </Reveal>
-              );
-            })}
-          </ul>
-        </section>
-      )}
 
       {/* Collections from the CMS (New Arrivals, Bestsellers, Sale, manual collections) */}
       {homeCollections.map((c, i) => (
@@ -125,7 +114,7 @@ export default async function HomePage() {
         <ul className="grid gap-4 rounded-[1.75rem] bg-cream p-6 sm:grid-cols-2 sm:p-10 lg:grid-cols-4">
           {[
             { icon: Gift, title: "Made for special days", text: "Delicate details, soft linings and comfort she’ll love all day." },
-            { icon: Ruler, title: "Size by height", text: "Sizes match your child’s height in cm — see the size guide on every product." },
+            { icon: Ruler, title: "Easy sizing", text: "Every product lists its sizes by age or height — and we’re happy to help you choose." },
             { icon: Truck, title: "Ships across the USA", text: "Careful packaging and delivery to all states." },
             { icon: ShieldCheck, title: "Secure checkout", text: "Your payment and personal data are always protected." },
           ].map(({ icon: Icon, title, text }) => (

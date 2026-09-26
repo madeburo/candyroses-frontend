@@ -150,6 +150,8 @@ export interface PaymentMethod {
   title: string;
   description: string;
   online: boolean;
+  /** false = announced but not connected yet ("Coming soon"); can't be selected. */
+  available: boolean;
 }
 
 export interface QuoteLine {

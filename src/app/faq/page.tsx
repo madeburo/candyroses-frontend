@@ -20,7 +20,15 @@ function buildFaq(s: StoreSettings, methods: ShippingMethod[], payments: Payment
   const shipped = shippedMethods(methods);
   const pickup = methods.find((m) => !m.requiresAddress);
   const lines = shippingSummary(methods, s.freeShippingFrom, formatPrice);
-  const contacts = [s.email && `email ${s.email}`, s.phone && `call ${s.phone}`].filter(Boolean).join(" or ");
+  const contacts = [
+    s.email && `email ${s.email}`,
+    s.phone && `call ${s.phone}`,
+    s.whatsapp && `message us on WhatsApp (${s.whatsapp})`,
+    s.instagram && `send a DM on Instagram (@${s.instagram.replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/\/$/, "")})`,
+  ]
+    .filter(Boolean)
+    .join(", ")
+    .replace(/, ([^,]*)$/, " or $1");
   const faq: { q: string; a: string }[] = [
     {
       q: "Do you ship across the USA?",
@@ -48,10 +56,15 @@ function buildFaq(s: StoreSettings, methods: ShippingMethod[], payments: Payment
     },
   );
   if (payments.length) {
-    faq.push({
-      q: "What payment methods do you accept?",
-      a: `${payments.map((p) => `${p.title} — ${p.description.replace(/\.$/, "")}`).join(". ")}. All prices are in US dollars.`,
-    });
+    const ready = payments.filter((p) => p.available);
+    const soon = payments.filter((p) => !p.available);
+    const parts = [
+      ready.length ? `We accept ${ready.map((p) => `${p.title} (${p.description.replace(/\.$/, "").toLowerCase()})`).join(", ")}.` : "",
+      soon.length ? `${soon.map((p) => p.title).join(", ")} ${soon.length > 1 ? "are" : "is"} coming soon.` : "",
+      !ready.length ? "Until then, contact us to place an order." : "",
+      "All prices are in US dollars.",
+    ];
+    faq.push({ q: "What payment methods do you accept?", a: parts.filter(Boolean).join(" ") });
   }
   faq.push({ q: "How can I track my order?", a: "When your order ships, we send you a tracking number. You can also follow the status of your order from the link in your order confirmation email or in your account." });
   if (contacts) faq.push({ q: "How can I contact you?", a: `You can ${contacts}${s.workingHours ? ` (${s.workingHours})` : ""}. We’re happy to help with sizing, orders and delivery.` });

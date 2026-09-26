@@ -21,7 +21,7 @@ export function Gallery({ images, name }: { images: ProductDetail["images"]; nam
   return (
     <div className="flex flex-col-reverse gap-3 lg:flex-row lg:gap-4">
       {images.length > 1 && (
-        <ul className="flex gap-2 overflow-x-auto lg:max-h-[640px] lg:w-20 lg:flex-col lg:overflow-y-auto" aria-label="Thumbnails">
+        <ul className="-m-1 flex gap-2 overflow-x-auto p-1 lg:max-h-[648px] lg:w-[88px] lg:flex-col lg:overflow-y-auto" aria-label="Thumbnails">
           {images.map((img, i) => (
             <li key={img.id} className="shrink-0">
               <button
@@ -29,7 +29,10 @@ export function Gallery({ images, name }: { images: ProductDetail["images"]; nam
                 onClick={() => go(i)}
                 aria-label={`Photo ${i + 1}`}
                 aria-current={i === active}
-                className={cn("relative block h-20 w-16 overflow-hidden rounded-xl bg-cream transition-opacity lg:h-24 lg:w-20", i === active ? "ring-2 ring-ink" : "opacity-70 hover:opacity-100")}
+                className={cn(
+                  "relative block h-20 w-16 overflow-hidden rounded-xl bg-cream ring-offset-2 ring-offset-warm-white transition-[opacity,box-shadow] duration-300 lg:h-24 lg:w-20",
+                  i === active ? "opacity-100 ring-[1.5px] ring-rose" : "opacity-55 hover:opacity-90",
+                )}
               >
                 <Image src={img.url} alt="" fill sizes="80px" className="object-cover" />
               </button>
@@ -71,7 +74,7 @@ export function Gallery({ images, name }: { images: ProductDetail["images"]; nam
             </button>
             <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5 sm:hidden" aria-hidden>
               {images.map((img, i) => (
-                <span key={img.id} className={cn("h-1.5 rounded-full transition-all", i === active ? "w-5 bg-ink" : "w-1.5 bg-ink/30")} />
+                <span key={img.id} className={cn("h-1.5 rounded-full transition-all", i === active ? "w-5 bg-rose-gold" : "w-1.5 bg-ink/20")} />
               ))}
             </div>
           </>

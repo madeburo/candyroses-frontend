@@ -30,7 +30,7 @@ export async function GET() {
     ...shippingSummary(methods, s.freeShippingFrom, formatPrice).map((l) => `- ${l}`),
     `- Order processing: ${HANDLING_DAYS[0]}–${HANDLING_DAYS[1]} business days; tracking number sent when the order ships`,
     `- Returns: exchanges and returns within ${RETURN_WINDOW_DAYS} days of delivery (unworn, tags attached)`,
-    ...(payments.length ? [`- Payment: ${payments.map((p) => p.title).join(", ")}`] : []),
+    ...(payments.length ? [`- Payment: ${payments.map((p) => `${p.title}${p.available ? "" : " (coming soon)"}`).join(", ")}`] : []),
     ...(s.email ? [`- Contact: ${s.email}${s.phone ? `, ${s.phone}` : ""}${s.workingHours ? ` (${s.workingHours})` : ""}`] : []),
     "",
     "## Pages",

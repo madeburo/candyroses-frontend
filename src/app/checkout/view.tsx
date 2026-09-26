@@ -112,7 +112,8 @@ export function CheckoutView() {
     });
     void api.get<PaymentMethod[]>("/payment-methods").then((m) => {
       setPaymentMethods(m);
-      if (m[0] && !getValues("paymentMethod")) setValue("paymentMethod", (m.find((x) => x.online) ?? m[0]).code);
+      const first = m.find((x) => x.available);
+      if (first && !getValues("paymentMethod")) setValue("paymentMethod", first.code);
     });
   }, [getValues, setValue]);
 
@@ -313,20 +314,36 @@ export function CheckoutView() {
             </h2>
             {!paymentMethods ? (
               <Loader2 className="size-5 animate-spin text-muted" />
-            ) : paymentMethods.length === 0 ? (
-              <p className="rounded-xl bg-danger/5 p-4 text-sm text-danger">Online payments are temporarily unavailable. Please contact us to place your order.</p>
             ) : (
               <fieldset className="space-y-3">
                 <legend className="sr-only">Payment method</legend>
                 {paymentMethods.map((p) => (
-                  <label key={p.code} className={cn("flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors", paymentCode === p.code ? "border-ink bg-cream/60" : "border-line hover:border-ink/40")}>
-                    <input type="radio" value={p.code} {...register("paymentMethod")} className="mt-1 size-4 accent-ink" />
-                    <span>
-                      <span className="block font-medium">{p.title}</span>
+                  <label
+                    key={p.code}
+                    className={cn(
+                      "flex items-start gap-3 rounded-2xl border p-4 transition-colors",
+                      !p.available ? "cursor-not-allowed border-line opacity-60" : paymentCode === p.code ? "cursor-pointer border-ink bg-cream/60" : "cursor-pointer border-line hover:border-ink/40",
+                    )}
+                  >
+                    <input type="radio" value={p.code} disabled={!p.available} {...register("paymentMethod")} className="mt-1 size-4 accent-ink" />
+                    <span className="min-w-0 flex-1">
+                      <span className="flex flex-wrap items-center gap-2 font-medium">
+                        {p.title}
+                        {!p.available && <span className="rounded-full bg-cream px-2 py-0.5 text-[11px] font-semibold tracking-wide text-muted uppercase">Coming soon</span>}
+                      </span>
                       <span className="block text-sm text-muted">{p.description}</span>
                     </span>
                   </label>
                 ))}
+                {!paymentMethods.some((p) => p.available) && (
+                  <p className="rounded-xl bg-cream p-4 text-sm text-ink-soft">
+                    Online payment is being set up and will be available very soon. To place an order now, please{" "}
+                    <Link href="/contact" className="underline underline-offset-4">
+                      contact us
+                    </Link>
+                    .
+                  </p>
+                )}
               </fieldset>
             )}
           </section>
@@ -373,7 +390,7 @@ export function CheckoutView() {
               <AlertCircle className="size-4 shrink-0" /> {submitError}
             </p>
           )}
-          <button type="submit" disabled={placing || !quote || quote.hasIssues || !paymentMethods?.length} className="btn-primary w-full">
+          <button type="submit" disabled={placing || !quote || quote.hasIssues || !payment?.available} className="btn-primary w-full">
             {placing && <Loader2 className="size-4 animate-spin" />}
             {payment?.online ? `Continue to ${payment.title}` : "Place order"}
             {quote && !placing ? ` · ${formatPrice(quote.total, quote.currency)}` : ""}

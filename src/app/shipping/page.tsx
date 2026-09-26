@@ -52,6 +52,7 @@ export default async function ShippingPage() {
         {payments.map((p) => (
           <li key={p.code}>
             <strong className="text-ink">{p.title}</strong> — {p.description}
+            {!p.available && " (coming soon)"}
           </li>
         ))}
       </ul>
