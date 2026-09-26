@@ -3,20 +3,36 @@ import Link from "next/link";
 import { ProsePage } from "@/components/content/prose-page";
 import { formatPrice } from "@/lib/format";
 import { getPaymentMethods, getSettings, getShippingMethods } from "@/lib/server-api";
-import { freeFrom, HANDLING_DAYS, pageMetadata, RETURN_WINDOW_DAYS, SHIPS_FROM } from "@/lib/seo";
+import { deliveryTime, freeFrom, pageMetadata, PRODUCTION_TEXT, RETURN_WINDOW_DAYS, SHIPS_FROM } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Shipping & Payment",
-  description: "Shipping options across the USA, delivery times, payment methods, exchanges and returns at Candy Roses Shop.",
+  description: "Handmade to order and shipped from Almaty, Kazakhstan to anywhere in the USA: production and delivery times, shipping costs, payment, exchanges and returns.",
   path: "/shipping",
 });
 export const revalidate = 300;
 
 export default async function ShippingPage() {
   const [methods, payments, settings] = await Promise.all([getShippingMethods(), getPaymentMethods(), getSettings()]);
+  const delivery = deliveryTime(methods);
   return (
     <ProsePage title="Shipping & Payment" eyebrow="Customer care">
-      <p>We ship across the USA. All orders ship from {SHIPS_FROM.city}, {SHIPS_FROM.country}.</p>
+      <p>
+        Every Candy Roses piece is handmade especially for your order — nothing sits on a warehouse shelf. Here’s what happens after you place it:
+      </p>
+      <ul>
+        <li>
+          <strong className="text-ink">Making & preparing — {PRODUCTION_TEXT}.</strong> We sew your piece, check every seam and bow, and pack it with care.
+        </li>
+        <li>
+          <strong className="text-ink">Delivery — {delivery ?? "see below"}.</strong> Your parcel travels from {SHIPS_FROM.city}, {SHIPS_FROM.country} ({SHIPS_FROM.region}) straight to your
+          doorstep anywhere in the USA.
+        </li>
+      </ul>
+      <p>
+        Planning for a birthday or another big day? We recommend ordering 3–4 weeks ahead, so everything arrives with time to spare. As soon as your order ships, we’ll email
+        you a tracking number so you can follow its journey.
+      </p>
       <h2>Shipping options</h2>
       <div className="not-prose overflow-x-auto rounded-2xl border border-line">
         <table className="w-full min-w-[480px] text-left text-sm">
@@ -46,7 +62,6 @@ export default async function ShippingPage() {
           </tbody>
         </table>
       </div>
-      <p>Orders are processed within {HANDLING_DAYS[0]}–{HANDLING_DAYS[1]} business days. You’ll receive a tracking number as soon as your order ships.</p>
       <h2>Payment</h2>
       <ul>
         {payments.map((p) => (

@@ -8,6 +8,7 @@ import { formatPrice } from "@/lib/format";
 import type { ProductDetail } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { MAX_QTY, useCart } from "@/stores/cart";
+import { PRODUCTION_TEXT } from "@/lib/seo";
 
 type Selection = Record<string, string>;
 
@@ -22,7 +23,7 @@ function initialSelection(p: ProductDetail): Selection {
   return sel;
 }
 
-export function ProductPurchase({ product: p }: { product: ProductDetail }) {
+export function ProductPurchase({ product: p, delivery }: { product: ProductDetail; delivery?: string | null }) {
   const [selection, setSelection] = useState<Selection>(() => initialSelection(p));
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -96,8 +97,15 @@ export function ProductPurchase({ product: p }: { product: ProductDetail }) {
               {o.type === "COLOR" && selectedColor ? <span className="ml-2 font-normal text-muted">{selectedColor.value}</span> : null}
               {o.unit && o.type !== "COLOR" ? <span className="ml-1 font-normal text-muted">({o.unit})</span> : null}
             </span>
-            {o.code === "size" && (
-              <a href="#size-guide" className="text-muted underline underline-offset-4 hover:text-ink">
+            {(o.code === "size" || o.code === "size-years") && (
+              <a
+                href="#size-guide"
+                onClick={() => {
+                  const guide = document.getElementById("size-guide");
+                  if (guide instanceof HTMLDetailsElement) guide.open = true;
+                }}
+                className="text-muted underline underline-offset-4 hover:text-ink"
+              >
                 Size guide
               </a>
             )}
@@ -202,8 +210,15 @@ export function ProductPurchase({ product: p }: { product: ProductDetail }) {
         </div>
       )}
 
-      <p className="flex items-center gap-2 text-sm text-muted">
-        <Truck className="size-4 shrink-0" /> Ships across the USA. <Link href="/shipping" className="underline underline-offset-4 hover:text-ink">Shipping details</Link>
+      <p className="flex items-start gap-2 text-sm leading-relaxed text-muted">
+        <Truck className="mt-0.5 size-4 shrink-0" />
+        <span>
+          Handmade to order — ready to ship in {PRODUCTION_TEXT}
+          {delivery ? `, delivered in ${delivery}` : ""}.{" "}
+          <Link href="/shipping" className="underline underline-offset-4 hover:text-ink">
+            Shipping details
+          </Link>
+        </span>
       </p>
     </div>
   );

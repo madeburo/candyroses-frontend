@@ -1,5 +1,5 @@
 import { formatPrice } from "@/lib/format";
-import { HANDLING_DAYS, RETURN_WINDOW_DAYS, SHIPS_FROM, shippingSummary } from "@/lib/seo";
+import { deliveryTime, PRODUCTION_TEXT, RETURN_WINDOW_DAYS, SHIPS_FROM, shippingSummary } from "@/lib/seo";
 import { getCategories, getPaymentMethods, getProducts, getSettings, getShippingMethods, safe } from "@/lib/server-api";
 import { absoluteUrl } from "@/lib/utils";
 
@@ -26,10 +26,11 @@ export async function GET() {
     "## Key facts",
     `- Website: ${absoluteUrl("/")}`,
     "- Market: United States (ships across the USA)",
-    `- Ships from: ${SHIPS_FROM.city}, ${SHIPS_FROM.country}`,
+    `- Ships from: ${SHIPS_FROM.city}, ${SHIPS_FROM.country} (${SHIPS_FROM.region})`,
     "- Currency: USD",
     ...shippingSummary(methods, s.freeShippingFrom, formatPrice).map((l) => `- ${l}`),
-    `- Order processing: ${HANDLING_DAYS[0]}–${HANDLING_DAYS[1]} business days; tracking number sent when the order ships`,
+    `- Handmade to order: ${PRODUCTION_TEXT} to make and prepare, then ${deliveryTime(methods) ?? "standard"} delivery to the USA; tracking number sent when the order ships`,
+    "- Sizes: by age, 1Y–10Y, with height, chest, waist and hip measurements in the size guide",
     `- Returns: exchanges and returns within ${RETURN_WINDOW_DAYS} days of delivery (unworn, tags attached)`,
     ...(payments.length ? [`- Payment: ${payments.map((p) => `${p.title}${p.available ? "" : " (coming soon)"}`).join(", ")}`] : []),
     ...(s.email ? [`- Contact: ${s.email}${s.phone ? `, ${s.phone}` : ""}${s.workingHours ? ` (${s.workingHours})` : ""}`] : []),
@@ -38,6 +39,7 @@ export async function GET() {
     `- [Shop all dresses](${absoluteUrl("/catalog")}): full catalog with size, color and price filters`,
     ...liveCategories.map((c) => `- [${c.name}](${absoluteUrl(`/category/${c.slug}`)})${c.description ? `: ${c.description}` : ""}`),
     `- [FAQ](${absoluteUrl("/faq")}): shipping, delivery times, sizes, payment and returns`,
+    `- [Size guide](${absoluteUrl("/size-guide")}): children’s size chart for ages 1–10 (inches and centimeters)`,
     `- [Shipping & Payment](${absoluteUrl("/shipping")}): shipping options, costs and return policy`,
     `- [Contact](${absoluteUrl("/contact")})`,
   ];

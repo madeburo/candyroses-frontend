@@ -7,9 +7,10 @@ export const DEFAULT_OG_IMAGE = { url: "/og.jpg", width: 1200, height: 630, alt:
 /** Exchanges & returns window, shown on /shipping and /faq and published in structured data. */
 export const RETURN_WINDOW_DAYS = 14;
 /** Where orders are shipped from (shown on shipping info and published in structured data). */
-export const SHIPS_FROM = { city: "Almaty", country: "Kazakhstan", countryCode: "KZ" } as const;
-/** Order processing time before an order ships (business days). */
-export const HANDLING_DAYS: [number, number] = [1, 2];
+export const SHIPS_FROM = { city: "Almaty", country: "Kazakhstan", region: "Central Asia", countryCode: "KZ" } as const;
+/** Every piece is handmade to order: days to make and prepare it before it ships. */
+export const PRODUCTION_DAYS: [number, number] = [1, 7];
+export const PRODUCTION_TEXT = `${PRODUCTION_DAYS[0]}–${PRODUCTION_DAYS[1]} days`;
 
 type OgImage = { url: string; width?: number; height?: number; alt?: string };
 
@@ -82,6 +83,9 @@ export function parseDays(text: string | null): [number, number] | null {
 
 export const shippedMethods = (methods: ShippingMethod[]) => methods.filter((m) => m.requiresAddress);
 
+/** Delivery time of the main shipping method as entered in the CMS, e.g. "10–18 days". */
+export const deliveryTime = (methods: ShippingMethod[]) => shippedMethods(methods).find((m) => m.estimatedDays)?.estimatedDays ?? null;
+
 /** Free-shipping threshold of a method; like the API, falls back to the store-wide threshold. */
 export const freeFrom = (m: ShippingMethod, storeFreeFrom: number | null) => m.freeFromAmount ?? storeFreeFrom;
 
@@ -100,7 +104,7 @@ export function shippingDetailsJsonLd(methods: ShippingMethod[], storeFreeFrom: 
         ? {
             deliveryTime: {
               "@type": "ShippingDeliveryTime",
-              handlingTime: { "@type": "QuantitativeValue", minValue: HANDLING_DAYS[0], maxValue: HANDLING_DAYS[1], unitCode: "DAY" },
+              handlingTime: { "@type": "QuantitativeValue", minValue: PRODUCTION_DAYS[0], maxValue: PRODUCTION_DAYS[1], unitCode: "DAY" },
               transitTime: { "@type": "QuantitativeValue", minValue: days[0], maxValue: days[1], unitCode: "DAY" },
             },
           }

@@ -57,6 +57,7 @@ export async function Footer() {
           <p className="eyebrow">Help</p>
           <ul className="mt-4 space-y-2.5 text-sm">
             <li><Link href="/faq" className="hover:text-rose-deep">FAQ</Link></li>
+            <li><Link href="/size-guide" className="hover:text-rose-deep">Size Guide</Link></li>
             <li><Link href="/shipping" className="hover:text-rose-deep">Shipping & Payment</Link></li>
             <li><Link href="/contact" className="hover:text-rose-deep">Contact Us</Link></li>
             <li><Link href="/account" className="hover:text-rose-deep">My Account</Link></li>

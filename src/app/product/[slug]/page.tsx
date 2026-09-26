@@ -7,9 +7,10 @@ import { ProductGrid } from "@/components/catalog/product-card";
 import { JsonLd } from "@/components/json-ld";
 import { Gallery } from "@/components/product/gallery";
 import { ProductPurchase } from "@/components/product/product-purchase";
+import { AgeSizeChart } from "@/components/product/age-size-chart";
 import { SizeGuide } from "@/components/product/size-guide";
 import { formatPrice } from "@/lib/format";
-import { HANDLING_DAYS, pageMetadata, RETURN_WINDOW_DAYS, returnPolicyJsonLd, SHIPS_FROM, shippingDetailsJsonLd, shippingSummary, STORE_NAME } from "@/lib/seo";
+import { deliveryTime, pageMetadata, PRODUCTION_TEXT, RETURN_WINDOW_DAYS, returnPolicyJsonLd, SHIPS_FROM, shippingDetailsJsonLd, shippingSummary, STORE_NAME } from "@/lib/seo";
 import { getProduct, getRelated, getSettings, getShippingMethods, NotFoundError } from "@/lib/server-api";
 import type { ProductDetail, ShippingMethod } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
@@ -123,7 +124,9 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
   const { slug } = await params;
   const [p, settings, methods] = await Promise.all([load(slug), getSettings(), getShippingMethods()]);
   const related = await getRelated(slug);
-  const hasSize = p.options.some((o) => o.code === "size");
+  const hasCmSize = p.options.some((o) => o.code === "size");
+  const hasAgeSize = p.options.some((o) => o.code === "size-years");
+  const delivery = deliveryTime(methods);
   const crumbs = [
     { name: "Shop All", href: "/catalog" },
     ...p.breadcrumbs.map((b) => ({ name: b.name, href: `/category/${b.slug}` })),
@@ -148,7 +151,7 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
             <h1 className="mt-3 font-display text-4xl leading-tight font-medium sm:text-5xl">{p.name}</h1>
             {p.shortDescription && <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">{p.shortDescription}</p>}
             <div className="mt-7">
-              <ProductPurchase product={p} />
+              <ProductPurchase product={p} delivery={delivery} />
             </div>
             <div className="mt-8 border-t border-line">
               {p.description && (
@@ -186,15 +189,16 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
                   )}
                 </dl>
               </Section>
-              {hasSize && (
+              {(hasAgeSize || hasCmSize) && (
                 <Section title="Size guide" id="size-guide">
-                  <SizeGuide />
+                  {hasAgeSize ? <AgeSizeChart /> : <SizeGuide />}
                 </Section>
               )}
               <Section title="Shipping & returns">
                 <div className="space-y-2 text-sm leading-relaxed text-ink-soft">
                   <p>
-                    We ship across the USA from {SHIPS_FROM.city}, {SHIPS_FROM.country}. Orders are processed within {HANDLING_DAYS[0]}–{HANDLING_DAYS[1]} business days.
+                    Each piece is handmade to order. Please allow {PRODUCTION_TEXT} for us to make and prepare it{delivery ? `, then ${delivery} for delivery` : ""} from{" "}
+                    {SHIPS_FROM.city}, {SHIPS_FROM.country} to your door anywhere in the USA.
                   </p>
                   {methods.length > 0 && (
                     <ul className="list-disc space-y-1 pl-5">

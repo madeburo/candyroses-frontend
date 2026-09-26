@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ProsePage } from "@/components/content/prose-page";
 import { JsonLd } from "@/components/json-ld";
 import { formatPrice } from "@/lib/format";
-import { HANDLING_DAYS, pageMetadata, RETURN_WINDOW_DAYS, SHIPS_FROM, shippedMethods, shippingSummary } from "@/lib/seo";
+import { pageMetadata, PRODUCTION_TEXT, RETURN_WINDOW_DAYS, SHIPS_FROM, shippedMethods, shippingSummary } from "@/lib/seo";
 import { getPaymentMethods, getSettings, getShippingMethods } from "@/lib/server-api";
 import type { PaymentMethod, ShippingMethod, StoreSettings } from "@/lib/types";
 
@@ -32,23 +32,27 @@ function buildFaq(s: StoreSettings, methods: ShippingMethod[], payments: Payment
   const faq: { q: string; a: string }[] = [
     {
       q: "Do you ship across the USA?",
-      a: `Yes. ${s.storeName} ships to addresses across the United States${pickup ? `, and ${pickup.name.toLowerCase()} is also available${pickup.price === 0 ? " for free" : ""}` : ""}. All orders ship from ${SHIPS_FROM.city}, ${SHIPS_FROM.country}.`,
+      a: `Yes — we deliver to addresses anywhere in the United States${pickup ? `, and ${pickup.name.toLowerCase()} is also available${pickup.price === 0 ? " for free" : ""}` : ""}. Every order ships from ${SHIPS_FROM.city}, ${SHIPS_FROM.country} (${SHIPS_FROM.region}).`,
+    },
+    {
+      q: "Are your dresses made to order?",
+      a: `Yes. Every piece is handmade especially for you once you place your order — it usually takes ${PRODUCTION_TEXT} to make and prepare it before it ships.`,
     },
   ];
   if (lines.length) faq.push({ q: "How much does shipping cost?", a: `${lines.join(". ")}.` });
   if (shipped.length) {
     faq.push({
       q: "How long does delivery take?",
-      a: `Orders are processed within ${HANDLING_DAYS[0]}–${HANDLING_DAYS[1]} business days. Delivery then takes ${shipped
+      a: `Please allow ${PRODUCTION_TEXT} for us to make your order, then ${shipped
         .filter((m) => m.estimatedDays)
         .map((m) => `${m.estimatedDays} with ${m.name}`)
-        .join(", or ")}. You’ll receive a tracking number as soon as your order ships.`,
+        .join(", or ")} for it to reach your doorstep. Shopping for a birthday or a special date? We recommend ordering 3–4 weeks ahead. You’ll receive a tracking number as soon as your order ships.`,
     });
   }
   faq.push(
     {
       q: "How do I choose the right size?",
-      a: "Each product page lists the available sizes — by the child’s age (for example 1Y–10Y) or by height in centimeters, with a size guide. If you’re not sure, send us your child’s height and age and we’ll recommend a size.",
+      a: "Our sizes follow your child’s age, from 1Y to 10Y. The size guide shows the height, chest, waist and hip measurements for every size, in inches and centimeters. In between sizes? Choose the larger one — or send us her measurements and we’ll recommend a size.",
     },
     {
       q: "What is your return policy?",
@@ -90,7 +94,7 @@ export default async function FaqPage() {
         </section>
       ))}
       <p className="pt-4">
-        More details: <Link href="/shipping">Shipping & Payment</Link> · <Link href="/contact">Contact us</Link>
+        More details: <Link href="/shipping">Shipping & Payment</Link> · <Link href="/size-guide">Size guide</Link> · <Link href="/contact">Contact us</Link>
       </p>
     </ProsePage>
   );

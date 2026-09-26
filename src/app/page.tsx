@@ -6,9 +6,9 @@ import { connection } from "next/server";
 import { ProductRail } from "@/components/home/product-rail";
 import { InstagramIcon } from "@/components/ui/icons";
 import { Reveal } from "@/components/ui/reveal";
-import { pageMetadata, STORE_NAME } from "@/lib/seo";
+import { deliveryTime, pageMetadata, PRODUCTION_TEXT, STORE_NAME } from "@/lib/seo";
 import { formatPrice } from "@/lib/format";
-import { getCollections, getProducts, getSettings, safe } from "@/lib/server-api";
+import { getCollections, getProducts, getSettings, getShippingMethods, safe } from "@/lib/server-api";
 import type { PageMeta, ProductCard } from "@/lib/types";
 import { instagramUrl } from "@/lib/utils";
 
@@ -38,7 +38,8 @@ export default async function HomePage() {
   // Rendered per request so the hero shows a different pair of products on every visit
   // (API responses themselves stay cached for 60s).
   await connection();
-  const [settings, collections] = await Promise.all([getSettings(), getCollections()]);
+  const [settings, collections, methods] = await Promise.all([getSettings(), getCollections(), getShippingMethods()]);
+  const delivery = deliveryTime(methods);
   const homeCollections = collections.filter((c) => c.showOnHome);
 
   const [pool, collectionProducts] = await Promise.all([
@@ -114,8 +115,8 @@ export default async function HomePage() {
         <ul className="grid gap-4 rounded-[1.75rem] bg-cream p-6 sm:grid-cols-2 sm:p-10 lg:grid-cols-4">
           {[
             { icon: Gift, title: "Made for special days", text: "Delicate details, soft linings and comfort she’ll love all day." },
-            { icon: Ruler, title: "Easy sizing", text: "Every product lists its sizes by age or height — and we’re happy to help you choose." },
-            { icon: Truck, title: "Ships across the USA", text: "Careful packaging and delivery to all states." },
+            { icon: Ruler, title: "Easy sizing", text: "Sizes by age, 1Y–10Y, with a detailed size chart — and we’re happy to help you choose." },
+            { icon: Truck, title: "Handmade to order", text: `Made just for her in ${PRODUCTION_TEXT}, then delivered to your door across the USA${delivery ? ` in ${delivery}` : ""}.` },
             { icon: ShieldCheck, title: "Secure checkout", text: "Your payment and personal data are always protected." },
           ].map(({ icon: Icon, title, text }) => (
             <li key={title} className="flex gap-4">
