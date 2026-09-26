@@ -98,7 +98,7 @@ export async function Footer() {
       <div className="border-t border-line">
         <div className="container-page flex flex-col gap-2 py-5 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>© {year} {settings.storeName}. All rights reserved.</p>
-          <p>All prices are in US dollars (USD). Sales tax may apply.</p>
+          <p>All prices are in US dollars (USD). Orders ship from Almaty, Kazakhstan.</p>
         </div>
       </div>
     </footer>

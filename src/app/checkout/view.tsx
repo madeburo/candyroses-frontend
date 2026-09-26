@@ -379,7 +379,7 @@ export function CheckoutView() {
           <PromoForm quote={quote} loading={loading} />
           {quote ? (
             <div className={cn("transition-opacity", loading && "opacity-60")}>
-              <Summary quote={quote} shippingPending={!shippingCode} />
+              <Summary quote={quote} showShipping shippingPending={!shippingCode} />
             </div>
           ) : (
             <Loader2 className="mx-auto size-5 animate-spin text-muted" />

@@ -6,6 +6,8 @@ export const STORE_NAME = "Candy Roses Shop";
 export const DEFAULT_OG_IMAGE = { url: "/og.jpg", width: 1200, height: 630, alt: STORE_NAME };
 /** Exchanges & returns window, shown on /shipping and /faq and published in structured data. */
 export const RETURN_WINDOW_DAYS = 14;
+/** Where orders are shipped from (shown on shipping info and published in structured data). */
+export const SHIPS_FROM = { city: "Almaty", country: "Kazakhstan", countryCode: "KZ" } as const;
 /** Order processing time before an order ships (business days). */
 export const HANDLING_DAYS: [number, number] = [1, 2];
 
@@ -92,6 +94,7 @@ export function shippingDetailsJsonLd(methods: ShippingMethod[], storeFreeFrom: 
       "@type": "OfferShippingDetails",
       shippingLabel: m.name,
       shippingRate: { "@type": "MonetaryAmount", value: free ? 0 : m.price, currency },
+      shippingOrigin: { "@type": "DefinedRegion", addressCountry: SHIPS_FROM.countryCode },
       shippingDestination: { "@type": "DefinedRegion", addressCountry: "US" },
       ...(days
         ? {

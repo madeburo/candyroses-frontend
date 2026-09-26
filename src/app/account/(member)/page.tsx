@@ -121,9 +121,6 @@ export default function AccountPage() {
           <Field label="Phone" htmlFor="phone" error={e.phone?.message}>
             <input id="phone" type="tel" className="input" {...form.register("phone")} />
           </Field>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" className="size-4 accent-ink" {...form.register("marketingOptIn")} /> Email me news and offers
-          </label>
           {msg && <p className={msg.ok ? "text-sm text-success" : "text-sm text-danger"}>{msg.text}</p>}
           <button type="submit" className="btn-primary w-full" disabled={form.formState.isSubmitting}>
             Save changes

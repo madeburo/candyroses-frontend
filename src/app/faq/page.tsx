@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ProsePage } from "@/components/content/prose-page";
 import { JsonLd } from "@/components/json-ld";
 import { formatPrice } from "@/lib/format";
-import { HANDLING_DAYS, pageMetadata, RETURN_WINDOW_DAYS, shippedMethods, shippingSummary } from "@/lib/seo";
+import { HANDLING_DAYS, pageMetadata, RETURN_WINDOW_DAYS, SHIPS_FROM, shippedMethods, shippingSummary } from "@/lib/seo";
 import { getPaymentMethods, getSettings, getShippingMethods } from "@/lib/server-api";
 import type { PaymentMethod, ShippingMethod, StoreSettings } from "@/lib/types";
 
@@ -32,10 +32,10 @@ function buildFaq(s: StoreSettings, methods: ShippingMethod[], payments: Payment
   const faq: { q: string; a: string }[] = [
     {
       q: "Do you ship across the USA?",
-      a: `Yes. ${s.storeName} ships to addresses across the United States${pickup ? `, and ${pickup.name.toLowerCase()} is also available${pickup.price === 0 ? " for free" : ""}` : ""}.`,
+      a: `Yes. ${s.storeName} ships to addresses across the United States${pickup ? `, and ${pickup.name.toLowerCase()} is also available${pickup.price === 0 ? " for free" : ""}` : ""}. All orders ship from ${SHIPS_FROM.city}, ${SHIPS_FROM.country}.`,
     },
   ];
-  if (lines.length) faq.push({ q: "How much does shipping cost?", a: `${lines.join(". ")}. Sales tax, where applicable, is calculated at checkout based on the shipping state.` });
+  if (lines.length) faq.push({ q: "How much does shipping cost?", a: `${lines.join(". ")}.` });
   if (shipped.length) {
     faq.push({
       q: "How long does delivery take?",

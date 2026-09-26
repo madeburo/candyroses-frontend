@@ -9,7 +9,7 @@ import { Gallery } from "@/components/product/gallery";
 import { ProductPurchase } from "@/components/product/product-purchase";
 import { SizeGuide } from "@/components/product/size-guide";
 import { formatPrice } from "@/lib/format";
-import { HANDLING_DAYS, pageMetadata, RETURN_WINDOW_DAYS, returnPolicyJsonLd, shippingDetailsJsonLd, shippingSummary, STORE_NAME } from "@/lib/seo";
+import { HANDLING_DAYS, pageMetadata, RETURN_WINDOW_DAYS, returnPolicyJsonLd, SHIPS_FROM, shippingDetailsJsonLd, shippingSummary, STORE_NAME } from "@/lib/seo";
 import { getProduct, getRelated, getSettings, getShippingMethods, NotFoundError } from "@/lib/server-api";
 import type { ProductDetail, ShippingMethod } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
@@ -193,7 +193,9 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
               )}
               <Section title="Shipping & returns">
                 <div className="space-y-2 text-sm leading-relaxed text-ink-soft">
-                  <p>We ship across the USA. Orders are processed within {HANDLING_DAYS[0]}–{HANDLING_DAYS[1]} business days.</p>
+                  <p>
+                    We ship across the USA from {SHIPS_FROM.city}, {SHIPS_FROM.country}. Orders are processed within {HANDLING_DAYS[0]}–{HANDLING_DAYS[1]} business days.
+                  </p>
                   {methods.length > 0 && (
                     <ul className="list-disc space-y-1 pl-5">
                       {shippingSummary(methods, settings.freeShippingFrom, formatPrice).map((line) => (

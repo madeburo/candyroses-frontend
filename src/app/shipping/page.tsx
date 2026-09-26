@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ProsePage } from "@/components/content/prose-page";
 import { formatPrice } from "@/lib/format";
 import { getPaymentMethods, getSettings, getShippingMethods } from "@/lib/server-api";
-import { freeFrom, HANDLING_DAYS, pageMetadata, RETURN_WINDOW_DAYS } from "@/lib/seo";
+import { freeFrom, HANDLING_DAYS, pageMetadata, RETURN_WINDOW_DAYS, SHIPS_FROM } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Shipping & Payment",
@@ -16,7 +16,7 @@ export default async function ShippingPage() {
   const [methods, payments, settings] = await Promise.all([getShippingMethods(), getPaymentMethods(), getSettings()]);
   return (
     <ProsePage title="Shipping & Payment" eyebrow="Customer care">
-      <p>We ship across the USA. Shipping costs are calculated automatically at checkout based on the method you choose.</p>
+      <p>We ship across the USA. All orders ship from {SHIPS_FROM.city}, {SHIPS_FROM.country}.</p>
       <h2>Shipping options</h2>
       <div className="not-prose overflow-x-auto rounded-2xl border border-line">
         <table className="w-full min-w-[480px] text-left text-sm">

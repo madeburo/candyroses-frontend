@@ -1,7 +1,7 @@
 import { formatPrice } from "@/lib/format";
 import type { CartQuote } from "@/lib/types";
 
-export function Summary({ quote, shippingPending }: { quote: CartQuote; shippingPending?: boolean }) {
+export function Summary({ quote, showShipping = false, shippingPending }: { quote: CartQuote; showShipping?: boolean; shippingPending?: boolean }) {
   const c = quote.currency;
   return (
     <dl className="space-y-2.5 text-[15px]">
@@ -15,18 +15,21 @@ export function Summary({ quote, shippingPending }: { quote: CartQuote; shipping
           <dd className="tabular-nums">−{formatPrice(quote.discountTotal, c)}</dd>
         </div>
       )}
-      <div className="flex justify-between">
-        <dt className="text-ink-soft">Shipping</dt>
-        <dd className="tabular-nums">
-          {quote.shipping ? (quote.shipping.isFree ? "Free" : formatPrice(quote.shipping.price, c)) : shippingPending ? "—" : "Calculated at checkout"}
-        </dd>
-      </div>
-      <div className="flex justify-between">
-        <dt className="text-ink-soft">Sales tax{quote.taxRate ? ` (${quote.taxRate}%)` : ""}</dt>
-        <dd className="tabular-nums">{quote.taxRate === null ? "Calculated at checkout" : formatPrice(quote.taxTotal, c)}</dd>
-      </div>
+      {showShipping && (
+        <div className="flex justify-between">
+          <dt className="text-ink-soft">Shipping</dt>
+          <dd className="tabular-nums">{quote.shipping ? (quote.shipping.isFree ? "Free" : formatPrice(quote.shipping.price, c)) : shippingPending ? "—" : ""}</dd>
+        </div>
+      )}
+      {/* Orders ship from Kazakhstan, so no US sales tax is configured; the line appears only if a rate is ever set. */}
+      {quote.taxTotal > 0 && (
+        <div className="flex justify-between">
+          <dt className="text-ink-soft">Sales tax{quote.taxRate ? ` (${quote.taxRate}%)` : ""}</dt>
+          <dd className="tabular-nums">{formatPrice(quote.taxTotal, c)}</dd>
+        </div>
+      )}
       <div className="flex justify-between border-t border-line pt-3.5 text-lg font-semibold">
-        <dt>{quote.taxRate === null ? "Estimated total" : "Total"}</dt>
+        <dt>Total</dt>
         <dd className="tabular-nums">{formatPrice(quote.total, c)}</dd>
       </div>
     </dl>

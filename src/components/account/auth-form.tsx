@@ -116,10 +116,6 @@ export function RegisterForm() {
       <Field label="Password" htmlFor="password" error={e.password?.message} hint="At least 8 characters">
         <input id="password" type="password" autoComplete="new-password" className="input" aria-invalid={!!e.password} {...form.register("password")} />
       </Field>
-      <label className="flex items-start gap-2.5 text-sm text-ink-soft">
-        <input type="checkbox" className="mt-0.5 size-4 accent-ink" {...form.register("marketingOptIn")} />
-        Email me about new arrivals and exclusive offers
-      </label>
       {error && (
         <p className="rounded-xl bg-danger/5 p-3 text-sm text-danger" role="alert">
           {error}

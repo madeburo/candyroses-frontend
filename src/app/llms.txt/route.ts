@@ -1,5 +1,5 @@
 import { formatPrice } from "@/lib/format";
-import { HANDLING_DAYS, RETURN_WINDOW_DAYS, shippingSummary } from "@/lib/seo";
+import { HANDLING_DAYS, RETURN_WINDOW_DAYS, SHIPS_FROM, shippingSummary } from "@/lib/seo";
 import { getCategories, getPaymentMethods, getProducts, getSettings, getShippingMethods, safe } from "@/lib/server-api";
 import { absoluteUrl } from "@/lib/utils";
 
@@ -26,6 +26,7 @@ export async function GET() {
     "## Key facts",
     `- Website: ${absoluteUrl("/")}`,
     "- Market: United States (ships across the USA)",
+    `- Ships from: ${SHIPS_FROM.city}, ${SHIPS_FROM.country}`,
     "- Currency: USD",
     ...shippingSummary(methods, s.freeShippingFrom, formatPrice).map((l) => `- ${l}`),
     `- Order processing: ${HANDLING_DAYS[0]}–${HANDLING_DAYS[1]} business days; tracking number sent when the order ships`,
